@@ -1,48 +1,88 @@
-const paintCanvas = document.querySelector(".js-paint")
-const context = paintCanvas.getContext("2d")
+var canvas = document.getElementById ("canvas");
+var context = canvas.getContext("2d");
+var radius= canvas.height/2;
+context.translate(radius,radius);
+radius = radius*0.90;
 
-const colorPicker = document.querySelector(".js-color-picker")
 
-context.lineCap = ""
+function drawFace(context,radius){
+    var grad;
+    context.beginPath();
+    context.arc(0,0,radius,0,2*Math.PI);
+    context.fillStyle="#191919";
+    context.fill();
 
-colorPicker.addEventListener("change", event=>{
-    context.strokeStyle = event.target.value
-})
-
-const lineWidthRange = document.querySelector(".js-line-range")
-const lineWidthLabel = document.querySelector(".js-range-value")
-
-lineWidthRange.addEventListener("input",event=>{
-    const width = event.target.value
-    lineWidthLabel.innerHTML = width
-    context.lineWidth=width
-})
-
-let x=0, y=0
-let isMouseDown = false
-
-const stopDrawing = () =>{
-    isMouseDown = false
+    grad= context.createRadialGradient(0,0,radius*0.80,0,0,radius*0.70);
+    grad.addColorStop(0,"#191919");
+    grad.addColorStop(0.5,"#191919");
+    grad.addColorStop(1,"#535252");
+    context.strokeStyle=grad;
+    context.lineWidth = radius*0.1;
+    context.stroke();
+    context.beginPath();
+    context.arc(0,0,radius*0.065,0,2*Math.PI)
+    context.fillStyle="#535252"
+    context.fill();
 }
 
-const startDrawing = (event) =>{
-    isMouseDown = true
-    [x.y] = [event.offsetX, event.offsetY]
-}
 
-const drawLine = (event) =>{
-    if (isMouseDown){
-        const newX = event.offsetX
-        const newY = event.offsetYcontext.baginPath();
-        context.moveTo(x,y)
-        context.lineTo(newX,newY)
-        context.stroke()
-        x = newX
-        y = newY
+
+function drawNumber(context,radius){
+    var num , ang;
+    
+    context.font=radius*0.17 + "px raleway";
+    
+    context.textBaseline="middle"
+    context.textAlign="center"
+    for(num=1;num<13;num++){
+        ang=num*Math.PI/6;
+        context.rotate(ang);
+        context.translate(0,-radius*0.85)
+        context.rotate(-ang);
+        context.fillText(num.toString(),0,0);
+        context.rotate(ang);
+        context.translate(0,radius*0.85);
+        context.rotate(-ang);
     }
 }
 
-paintCanvas.addEventListener("mousedown", startDrawing)
-paintCanvas.addEventListener("mousemove", drawLine)
-paintCanvas.addEventListener("mouseup",stopDrawing)
-paintCanvas.addEventListener("mouseout",stopDrawing)
+
+
+function drawTime(context,radius){
+    var now = new Date();
+    var hour = now.getHours();
+    var minute = now.getMinutes();
+    var second =  now.getSeconds();
+    
+    hour=hour%12;
+    
+    hour = (hour*Math.PI/6)+(minute*Math.PI/(6*60))+(second*Math.PI/(360*60))
+    drawHand(context,hour,radius*0.4,radius*0.04)
+
+     minute=(minute*Math.PI/30) + (second*Math.PI/(30*60))
+    drawHand(context,minute,radius*0.6,radius*0.04)
+
+    second=(second*Math.PI/30)
+    drawHand(context,second,radius*0.9,radius*0.01)
+}
+
+function drawHand(context,pos,length,width){
+    context.beginPath();
+    context.lineWidth=width
+    context.lineCap="round"
+
+    context.moveTo(0,0)
+    context.rotate(pos)
+    context.lineTo(0,-length)
+    context.stroke()
+    context.rotate(-pos)
+
+}
+
+setInterval(drawClock,1000)
+
+function drawClock(){
+    drawFace(context,radius);
+    drawNumber(context,radius)
+    drawTime(context,radius)
+}
